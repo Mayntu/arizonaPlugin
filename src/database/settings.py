@@ -1,17 +1,17 @@
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
-import os
+from os import environ
 
 try:
     load_dotenv()
 except Exception as e:
     print(e)
 
-mongodb_uri = os.environ.get("MONGODB_URI")
-database_name = os.environ.get("DATABASE_NAME", "test")  
+mongodb_uri = environ.get("MONGODB_URI")
+database_name = environ.get("DATABASE_NAME", "test")  
 
 try:
-    mongodb_client = AsyncIOMotorClient(mongodb_uri)
+    mongodb_client = AsyncIOMotorClient(mongodb_uri, uuidRepresentation="standard")
     database = mongodb_client[database_name]
     tokens_table = database["tokens"]
 

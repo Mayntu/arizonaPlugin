@@ -1,32 +1,47 @@
+from uuid import UUID
+from fastapi import HTTPException
+from datetime import datetime, timezone
 from src.database.settings import tokens_table
 from src.database.schemas.token_schema import TokenSchema
-from bson.objectid import ObjectId
-from fastapi import HTTPException
 
 
 
 async def create_token() -> str:
-    token_inserted = await tokens_table.insert_one({
-            "is_activated" : False,
-            "hwid" : False
-    })
+    token_schema : TokenSchema = TokenSchema(
+        is_activated=False,
+        hwid=None,
+        created_time=datetime.now(timezone.utc),
+        live_time=60
+    )
+    token_inserted = await tokens_table.insert_one(token_schema.model_dump(by_alias=True))
     token_id : str = str(token_inserted.inserted_id)
     return token_id
 
 
-async def activate_token(token_id : str, hwid : str) -> None:
-    token = await tokens_table.find_one({
-            "_id" : ObjectId(token_id),
-    })
+async def validate_token(token_id : str, hwid : str) -> bool:
+    try:
+        token = await tokens_table.find_one({
+                "_id" : UUID(token_id),
+        })
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="not correct id")
+    
     if token:
-        if not token["is_activated"]:
-            updated_result = await tokens_table.update_one(
-                {"_id": ObjectId(token_id)},
-                {"$set": {"is_activated": True, "hwid": hwid}}
-            )
-            if updated_result.modified_count == 0:
-                raise HTTPException(status_code=400, detail="not correct data")
-        else:
-            raise HTTPException(status_code=400, detail="token already activated")
-    else:
-        raise HTTPException(status_code=404, detail="token not found")
+        token_schema : TokenSchema = TokenSchema(**token)
+        if token_schema.is_activated:
+            if token_schema.is_expired():
+                raise HTTPException(status_code=400, detail="token expired")
+            
+            return hwid == token_schema.hwid
+
+        updated_result = await tokens_table.update_one(
+            {"_id": UUID(token_id)},
+            {"$set": {"is_activated": True, "hwid": hwid}}
+        )
+
+        if updated_result.modified_count == 0:
+            raise HTTPException(status_code=400, detail="not correct data")
+        
+        return True
+    
+    raise HTTPException(status_code=404, detail="token not found")
