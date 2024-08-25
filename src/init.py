@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from src.database.settings import database, check_connection
-import yaml
+# import yaml
 
 from fastapi.middleware.cors import CORSMiddleware
 

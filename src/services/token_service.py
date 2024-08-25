@@ -1,7 +1,10 @@
 from uuid import UUID
 from fastapi import HTTPException
 from datetime import datetime, timezone
-from src.database.settings import tokens_table
+from hmac import new as hmac_new, HMAC
+from hashlib import sha256
+
+from src.database.settings import tokens_table, TOKEN_PASS_HASH, CRYPT_KEY
 from src.database.schemas.token_schema import TokenSchema
 
 
@@ -45,3 +48,25 @@ async def validate_token(token_id : str, hwid : str) -> bool:
         return True
     
     raise HTTPException(status_code=404, detail="token not found")
+
+
+def validate_pass(key : str) -> bool:
+    if not key:
+        raise HTTPException(status_code=400, detail="not correct key")
+    
+    key_hash : str = get_hash(text=key, secret_key=CRYPT_KEY)
+    
+    if str(key_hash) == str(TOKEN_PASS_HASH):
+        return True
+    
+    raise HTTPException(status_code=400, detail="not correct key")
+
+
+def get_hash(text : str, secret_key : str) -> str:
+    password_bytes = text.encode('utf-8')
+    secret_key_bytes = secret_key.encode('utf-8')
+
+    hmac_obj : HMAC = hmac_new(secret_key_bytes, password_bytes, sha256)
+
+    return hmac_obj.hexdigest()
+

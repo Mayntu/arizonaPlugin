@@ -12,7 +12,8 @@ from core.pay_yoomoney import (
     check_payment
 )
 from core.utils import (
-    create_keyboard
+    create_keyboard,
+    get_token
 )
 
 main_router : Router = Router()
@@ -77,12 +78,13 @@ async def buy_handler(message : Message):
 @main_router.callback_query(lambda c: "payment_uuid_" in c.data)
 async def callback_check_payment(callback_query : CallbackQuery):
     uuid : str = callback_query.data.split("payment_uuid_")[1]
-    if not check_payment(uuid=uuid):
-        await bot.send_message(callback_query.from_user.id, "Ваш токен : ")
+    if await check_payment(uuid=uuid, user_id=str(callback_query.from_user.id)):
+        token : str = await get_token()
+        await bot.send_message(callback_query.from_user.id, f"Ваш токен : {token}")
     else:
         await bot.send_message(callback_query.from_user.id, "Не оплачено")
 
 
-@main_router.message()
-async def message_handler(message : Message):
-    await bot.send_message(message.chat.id, message.text)
+# @main_router.message()
+# async def message_handler(message : Message):
+#     await bot.send_message(message.chat.id, message.text)

@@ -8,14 +8,12 @@ except Exception as e:
     print(e)
 
 mongodb_uri = environ.get("MONGODB_URI")
-database_name = environ.get("DATABASE_NAME", "test")  
-TOKEN_PASS_HASH : str = environ.get("TOKEN_PASS_HASH")
-CRYPT_KEY : str = environ.get("CRYPT_KEY")
+database_name = environ.get("TELEBOT_DATABASE_NAME", "telebot_database")
 
 try:
     mongodb_client = AsyncIOMotorClient(mongodb_uri, uuidRepresentation="standard")
     database = mongodb_client[database_name]
-    tokens_table = database["tokens"]
+    buys_table = database["buys"]
 
     
     async def check_connection():
