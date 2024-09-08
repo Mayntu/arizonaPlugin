@@ -35,7 +35,10 @@ async def validate_token(token_id : str, hwid : str) -> bool:
             if token_schema.is_expired():
                 raise HTTPException(status_code=400, detail="token expired")
             
-            return hwid == token_schema.hwid
+            if not hwid == token_schema.hwid:
+                raise HTTPException(status_code=400, detail="token not valid")
+            
+            return True
 
         updated_result = await tokens_table.update_one(
             {"_id": UUID(token_id)},

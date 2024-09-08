@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build:
+      context: ./fastapi
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./fastapi/.env
+    depends_on:
+      - mongo
+      - redis
+    container_name: fastapi_app
+  
+  telebot:
+    build:
+      context: ./telebot
+      dockerfile: Dockerfile
+    env_file:
+      - ./telebot/.env
+    depends_on:
+      - mongo
+    container_name: telebot_app
+
+  mongo:
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    restart: always
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: nginx_proxy
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx:/etc/nginx/conf.d
+  #     - ./ssl:/etc/ssl/certs
+  #     - ./ssl:/etc/ssl/private
+  #   depends_on:
+  #     - app
+
+volumes:
+  mongodb_data:
+  redis_data:

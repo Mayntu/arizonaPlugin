@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from src.database.settings import database, check_connection
+from src.database.redis_client import redis_client
 # import yaml
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,6 +49,16 @@ async def create_app() -> FastAPI:
     #         return app.openapi_schema
         
     # app.openapi = custom_openapi
+
+    @app.on_event("startup")
+    async def startup_event():
+        await redis_client.init()
+        print("redis on")
+
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        await redis_client.close()
+        print("redis off")
     
     return app
 
