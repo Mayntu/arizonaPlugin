@@ -27,7 +27,7 @@ jobs:
 
       - name: Build and push Docker image for FastAPI
         uses: docker/build-push-action@v2
-        with: 
+        with:
           context: ./fastapi
           push: true
           tags: manytu/fastapi_app:latest

@@ -32,7 +32,7 @@ async def validate_token(token_id : str, hwid : str) -> bool:
     if token:
         token_schema : TokenSchema = TokenSchema(**token)
         if token_schema.is_activated:
-            if token_schema.is_expired():
+            if token_schema.is_valid():
                 raise HTTPException(status_code=400, detail="token expired")
             
             if not hwid == token_schema.hwid:

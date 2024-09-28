@@ -15,6 +15,9 @@ class TokenSchema(BaseModel):
     def is_expired(self) -> bool:
         return datetime.utcnow() > self.get_expire_time()
     
+    def is_valid(self) -> bool:
+        return self.is_expired()
+    
     class Config:
         arbitrary_types_allowed = True
         json_encoders = {
