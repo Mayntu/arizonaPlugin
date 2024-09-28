@@ -4,10 +4,13 @@ from src.database.redis_client import redis_client
 # import yaml
 
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 async def create_app() -> FastAPI:
     app = FastAPI(docs_url="/")
+
+    Instrumentator().instrument(app).expose(app)
         
     origins = [
         "http://localhost:5000",

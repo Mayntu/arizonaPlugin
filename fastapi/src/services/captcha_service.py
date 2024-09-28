@@ -30,7 +30,7 @@ async def get_captchas(request : GetCaptchasRequest) -> list[str]:
     captchas : list[str] = []
     for i in range(0, count):
         captcha : str = str(randint(1, 9))
-        for i in range(3):
+        for j in range(3):
             captcha += str(randint(0, 9))
         if zero_chance > randint(0, 100):
             captcha += "0"
