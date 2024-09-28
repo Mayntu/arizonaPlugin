@@ -37,7 +37,7 @@ from src.database.redis_client import redis_client
 api_router : APIRouter = APIRouter()
 
 
-@api_router.post("/token", response_model=dict[str, str])
+@api_router.post("/tokens", response_model=dict[str, str])
 async def api_create_token(data = Body()) -> dict[str, str]:
     try:
         key : str = data.get("secret")
