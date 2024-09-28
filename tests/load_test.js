@@ -13,7 +13,7 @@ export let options = {
     },
 };
 
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = 'http://45.93.200.195';
 
 export default function () {
     // /token
