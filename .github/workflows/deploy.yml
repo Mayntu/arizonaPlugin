@@ -1,40 +1,26 @@
-name: Build and Push Docker Image
+name: Deploy to VPS
 
 on:
   push:
     branches:
-      - main  # Workflow будет запускаться при пуше в ветку main
-  pull_request:
-    branches:
-      - main  # Также можно запустить на PR в ветку main
+      - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v1
+      - name: SSH to VPS and deploy
+        uses: appleboy/ssh-action@master
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /home/mayntu/arizonaPlugin
+            git pull origin main
+            docker-compose up -d --build
 
-      - name: Build and push Docker image for FastAPI
-        uses: docker/build-push-action@v2
-        with:
-          context: ./fastapi
-          push: true
-          tags: manytu/fastapi_app:latest
-
-      - name: Build and push Docker image for Telebot
-        uses: docker/build-push-action@v2
-        with:
-          context: ./telebot
-          push: true
-          tags: manytu/telebot_app:latest
