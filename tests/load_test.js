@@ -4,7 +4,7 @@ import { check, sleep } from 'k6';
 export let options = {
     stages: [
         { duration: '1m', target: 5 },   // вверх - 5 пользователей за 1 минуту
-        { duration: '2m', target: 10 },   // держим - 10 пользователей в течении 3 минут
+        { duration: '2m', target: 10 },   // держим - 10 пользователей в течении 2 минут
         { duration: '1m', target: 0 },    // вниз - 0 пользователей за 1 минуту
     ],
     thresholds: {
