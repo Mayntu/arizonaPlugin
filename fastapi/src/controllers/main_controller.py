@@ -57,9 +57,7 @@ async def api_create_token(data = Body()) -> dict[str, str]:
 
 @api_router.post("/token/{token_id}/validate")
 async def api_is_token_valid(token_id : str, request : ValidateTokenRequest):
-    print(request, hwid, type(hwid))
     hwid : str = request.hwid
-    print(hwid, type(hwid))
     is_valid : bool = await validate_token(token_id, hwid)
     return JSONResponse(content={"is_valid" : is_valid}, status_code=200)
 
