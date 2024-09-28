@@ -14,7 +14,7 @@ async def create_token() -> str:
         is_activated=False,
         hwid=None,
         created_time=datetime.now(timezone.utc),
-        live_time=60
+        live_time=60*60
     )
     token_inserted = await tokens_table.insert_one(token_schema.model_dump(by_alias=True))
     token_id : str = str(token_inserted.inserted_id)
