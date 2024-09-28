@@ -67,4 +67,4 @@ async def create_app() -> FastAPI:
 
 def register_views(app: FastAPI):
     from src.controllers.main_controller import api_router
-    app.include_router(api_router)
+    app.include_router(api_router, prefix="/api/v1")
