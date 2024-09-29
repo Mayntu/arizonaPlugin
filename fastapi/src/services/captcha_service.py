@@ -79,10 +79,10 @@ async def calc_tax(request : CalcTaxRequest) -> CalcTaxResponse:
     price : int = PROPS.HOUSE.price if request.property.upper() == PROPS.HOUSE.title else PROPS.BUSINESS.price
     time_offset : int = request.timeOffset
 
-    hours_remaining : int = ceil((price - nalog_now) / nalog_in_hour)
-    seconds_remaining : int = 3600 * hours_remaining
-    days_remaining : int = floor(hours_remaining / 24)
-    days_left_hours : int = hours_remaining - (days_remaining * 24)
+    hours : int = ceil((price - nalog_now) / nalog_in_hour)
+    seconds_remaining : int = 3600 * hours
+    days : int = floor(hours / 24)
+    leftHours : int = hours - (days * 24)
 
     seconds_when_expire : int = time + seconds_remaining + (time_offset * 3600)
 
@@ -91,14 +91,11 @@ async def calc_tax(request : CalcTaxRequest) -> CalcTaxResponse:
         tz : timezone = timezone(timedelta(hours=3))
         seconds_when_expire : int = time + seconds_remaining
 
-    date_when_expire : str = datetime.strftime(datetime.fromtimestamp(seconds_when_expire, tz=tz), format="%d.%m.%Y %H:00")
-
-    result_remain : str = f"До слёта осталось {hours_remaining} час(ов) или {days_remaining} дня(ей) {days_left_hours} час(ов)"
-    result_date : str = f"Дата слёта от текущего дня и времени: {date_when_expire}"
-
     calc_tax_response : CalcTaxResponse = CalcTaxResponse(
-        resultRemain=result_remain,
-        resultDate=result_date
+        hours=hours,
+        days=days,
+        leftHours=leftHours,
+        date=datetime.strftime(datetime.fromtimestamp(seconds_when_expire, tz=tz), format="%d.%m.%Y %H:00")
     )
 
     return calc_tax_response
