@@ -18,6 +18,7 @@ class GetCaptchasRequest(HwidRequest):
 class ConvertTimeRequest(HwidRequest):
     time : str | int
     isNumber : bool
+    offset : int
 
 
 class CheckServerRequest(HwidRequest):

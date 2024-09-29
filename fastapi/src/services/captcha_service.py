@@ -51,20 +51,10 @@ async def convert_local_time_to_moscow(request : ConvertTimeRequest) -> int | st
         local_time : datetime = datetime.strptime(request.time, "%H:%M:%S")
 
     try:
-        current_utc_time = datetime.now(timezone.utc).replace(year=1900, month=1, day=1, minute=0, second=0, microsecond=0, tzinfo=None)
-
-        local_time_hours_only = local_time.replace(minute=0, second=0, microsecond=0, tzinfo=None)
-
-        time_difference = (local_time_hours_only - current_utc_time).total_seconds() / 3600
-
-        utc_offset = int(time_difference)
-        if utc_offset == 3:
-            return local_time.strftime("%H:%M:%S")
-
-        moscow_time = local_time - timedelta(hours=utc_offset - MOSCOW_UTC_OFFSET)
+        moscow_time = local_time - timedelta(hours=request.offset - MOSCOW_UTC_OFFSET)
 
         print(f"User time: {local_time}")
-        print(f"UTC offset: {utc_offset}")
+        print(f"UTC offset: {request.offset}")
         print(f"MOSCOW time: {moscow_time}")
 
         return moscow_time.strftime("%H:%M:%S")
