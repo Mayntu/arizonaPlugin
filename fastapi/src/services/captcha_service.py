@@ -57,7 +57,7 @@ async def convert_local_time_to_moscow(request : ConvertTimeRequest) -> int | st
         print(f"UTC offset: {request.offset}")
         print(f"MOSCOW time: {moscow_time}")
 
-        return moscow_time.strftime("%H:%M:%S")
+        return moscow_time.strftime("%H:%M:%S") + " MSK"
     
     except Exception as e:
         print(e)
@@ -87,15 +87,19 @@ async def calc_tax(request : CalcTaxRequest) -> CalcTaxResponse:
     seconds_when_expire : int = time + seconds_remaining + (time_offset * 3600)
 
     tz : timezone = timezone.utc
+    date : str = "{date}"
     if request.calcInMskTime:
         tz : timezone = timezone(timedelta(hours=3))
         seconds_when_expire : int = time + seconds_remaining
+        date = "{date} MSK"
+    
+    date = date.format(date=datetime.strftime(datetime.fromtimestamp(seconds_when_expire, tz=tz), format="%d.%m.%Y %H:00"))
 
     calc_tax_response : CalcTaxResponse = CalcTaxResponse(
         hours=hours,
         days=days,
         leftHours=leftHours,
-        date=datetime.strftime(datetime.fromtimestamp(seconds_when_expire, tz=tz), format="%d.%m.%Y %H:00")
+        date=date
     )
 
     return calc_tax_response
