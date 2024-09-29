@@ -45,7 +45,7 @@ async def get_captchas(request : GetCaptchasRequest) -> list[str]:
 async def convert_local_time_to_moscow(request : ConvertTimeRequest) -> int | str:
     if request.isNumber:
             seconds_since_epoch = int(request.time)
-            local_time = datetime.fromtimestamp(seconds_since_epoch, tz=timezone.utc)
+            local_time = datetime.fromtimestamp(seconds_since_epoch, tz=timezone(timedelta(hours=request.offset)))
     
     if not request.isNumber:
         local_time : datetime = datetime.strptime(request.time, "%H:%M:%S")
