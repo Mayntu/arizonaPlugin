@@ -12,6 +12,7 @@ from src.database.schemas.token_schema import TokenSchema
 async def create_token() -> str:
     token_schema : TokenSchema = TokenSchema(
         is_activated=False,
+        is_ok=True,
         hwid=None,
         created_time=datetime.now(timezone.utc),
         live_time=60*60

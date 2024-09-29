@@ -6,6 +6,7 @@ class TokenSchema(BaseModel):
     id : UUID = Field(default_factory=uuid4, alias="_id")
     is_activated : bool
     hwid : str | None
+    is_ok : bool
     created_time : datetime
     live_time : int # seconds
 
@@ -16,7 +17,7 @@ class TokenSchema(BaseModel):
         return datetime.utcnow() > self.get_expire_time()
     
     def is_valid(self) -> bool:
-        return self.is_expired()
+        return self.is_expired() and self.is_ok
     
     class Config:
         arbitrary_types_allowed = True
