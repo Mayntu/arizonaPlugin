@@ -22,5 +22,13 @@ jobs:
           script: |
             cd /home/mayntu/arizonaPlugin
             git pull origin main
-            docker compose up -d --build
+            echo "Updating FastAPI service..."
+            docker compose up -d --build fastapi
+            echo "Waiting for FastAPI replicas to be ready..."
+            sleep 15  # Allow time for FastAPI replicas to come online
+
+            echo "Restarting other services..."
+            docker compose up -d --build nginx mongo redis prometheus grafana telebot cadvisor node_exporter
+
+            echo "Deployment completed."
 
