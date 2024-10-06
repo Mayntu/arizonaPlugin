@@ -14,13 +14,15 @@ from src.database.dto.api_requests import (
     SearchPropertyRequest
 )
 from src.database.dto.api_responses import (
-    CalcTaxResponse
+    CalcTaxResponse,
+    ExpireTimeResponse
 )
 
 from src.services.token_service import(
     create_token,
     validate_token,
-    validate_pass
+    validate_pass,
+    get_expire_time
 )
 from src.services.captcha_service import (
     get_captchas,
@@ -148,3 +150,11 @@ async def api_search_property(token_id : str, request : SearchPropertyRequest, r
     except Exception as e:
         print("internal server error : " + {e})
         return JSONResponse(content={"message" : f"internal server error : {e}"}, status_code=500)
+
+
+@api_router.post("/token/get_expire_time/{token_id}", response_model=ExpireTimeResponse, status_code=200)
+async def api_get_expire_time(token_id : str, request : ValidateTokenRequest) -> ExpireTimeResponse:
+    hwid : str = request.hwid
+    await validate_token(token_id, hwid)
+
+    return await get_expire_time(token_id)

@@ -5,3 +5,7 @@ class CalcTaxResponse(BaseModel):
     days : int
     leftHours : int
     date : str
+
+
+class ExpireTimeResponse(BaseModel):
+    date : str

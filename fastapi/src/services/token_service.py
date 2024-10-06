@@ -1,11 +1,14 @@
 from uuid import UUID
 from fastapi import HTTPException
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from hmac import new as hmac_new, HMAC
 from hashlib import sha256
 
 from src.database.settings import tokens_table, TOKEN_PASS_HASH, CRYPT_KEY
 from src.database.schemas.token_schema import TokenSchema
+from src.database.dto.api_responses import (
+    ExpireTimeResponse,
+)
 
 
 
@@ -52,6 +55,24 @@ async def validate_token(token_id : str, hwid : str) -> bool:
         return True
     
     raise HTTPException(status_code=404, detail="token not found")
+
+
+async def get_expire_time(token_id : str) -> ExpireTimeResponse:
+    try:
+        token = await tokens_table.find_one({
+                "_id" : UUID(token_id),
+        })
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="not correct id")
+    
+    if not token:
+        raise HTTPException(status_code=404, detail="token not found")
+    
+    return ExpireTimeResponse(date=TokenSchema(**token)
+                              .get_expire_time()
+                              .replace(tzinfo=timezone.utc)
+                              .astimezone(timezone(timedelta(hours=3)))
+                              .strftime("%d-%m-%Y %H:%M:%S") + " MSK")
 
 
 def validate_pass(key : str) -> bool:
