@@ -22,5 +22,5 @@ jobs:
           script: |
             cd /home/mayntu/arizonaPlugin
             git pull origin main
-            bash deploy.sh
+            docker compose up -d --build
 

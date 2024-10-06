@@ -1,23 +1,22 @@
 services:
-  fastapi_1:
+  fastapi:
     build:
       context: ./fastapi
       dockerfile: Dockerfile
     env_file:
       - ./fastapi/.env
-    container_name: fastapi_app_1
+    depends_on:
+      - mongo
+      - redis
+    container_name: fastapi_app
     networks:
       - internal_network
-
-  fastapi_2:
-    build:
-      context: ./fastapi
-      dockerfile: Dockerfile
-    env_file:
-      - ./fastapi/.env
-    container_name: fastapi_app_2
-    networks:
-      - internal_network
+    deploy:
+      mode: replicated
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
   
   telebot:
     build:
@@ -111,8 +110,8 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - fastapi_1
-      - fastapi_2
+      - fastapi
+      - telebot
     networks:
       - internal_network
       - external_network
