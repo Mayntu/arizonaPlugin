@@ -9,7 +9,7 @@ echo "Waiting for fastapi_2 to be ready..."
 sleep 10
 
 echo "Restarting remaining containers..."
-docker compose up -d --build mongo redis prometheus grafana telebot
+docker compose up -d --build mongo redis prometheus grafana telebot cadvisor node_exporter
 
 echo "Restarting Nginx..."
 docker compose restart nginx
