@@ -152,7 +152,7 @@ async def api_search_property(token_id : str, request : SearchPropertyRequest, r
         return JSONResponse(content={"message" : f"internal server error : {e}"}, status_code=500)
 
 
-@api_router.post("/}", response_model=ExpireTimeResponse, status_code=200)
+@api_router.post("/token/get_expire_time/{token_id}", response_model=ExpireTimeResponse, status_code=200)
 async def api_get_expire_time(token_id : str, request : ValidateTokenRequest) -> ExpireTimeResponse:
     hwid : str = request.hwid
     await validate_token(token_id, hwid)
