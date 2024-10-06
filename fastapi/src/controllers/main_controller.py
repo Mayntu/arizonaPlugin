@@ -134,27 +134,3 @@ async def api_calc_tax(token_id : str, request : CalcTaxRequest):
         return JSONResponse(content={"message" : f"internal server error : {e}"}, status_code=500)
 
 
-@api_router.post("/search_property/{token_id}")
-async def api_search_property(token_id : str, request : SearchPropertyRequest, redis : aioredis.Redis = Depends(lambda: redis_client.redis)):
-    hwid : str = request.hwid
-    await validate_token(token_id, hwid)
-
-    try:
-        response : dict = await search_property(
-            request=request,
-            redis=redis
-        )
-        return JSONResponse(content={"result" : response}, status_code=200)
-    except HTTPException as e:
-        return JSONResponse(content={"message" : e.detail}, status_code=e.status_code)
-    except Exception as e:
-        print("internal server error : " + {e})
-        return JSONResponse(content={"message" : f"internal server error : {e}"}, status_code=500)
-
-
-@api_router.post("/token//{token_id}", response_model=ExpireTimeResponse, status_code=200)
-async def api_get_expire_time(token_id : str, request : ValidateTokenRequest) -> ExpireTimeResponse:
-    hwid : str = request.hwid
-    await validate_token(token_id, hwid)
-
-    return await get_expire_time(token_id)
