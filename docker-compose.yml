@@ -8,7 +8,6 @@ services:
     depends_on:
       - mongo
       - redis
-    container_name: fastapi_app
     networks:
       - internal_network
     deploy:
