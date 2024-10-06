@@ -25,7 +25,16 @@ jobs:
             echo "Updating FastAPI service..."
             docker compose up -d --build fastapi
             echo "Waiting for FastAPI replicas to be ready..."
-            sleep 15  # Allow time for FastAPI replicas to come online
+            echo "Waiting for FastAPI replicas to be ready..."
+            for i in {1..30}; do
+                if curl -s -o /dev/null -w "%{http_code}" http://localhost:5000 | grep -q "200"; then
+                    echo "FastAPI is ready!"
+                    break
+                else
+                    echo "Waiting for FastAPI..."
+                    sleep 5
+                fi
+            done
 
             echo "Restarting other services..."
             docker compose up -d --build nginx mongo redis prometheus grafana telebot cadvisor node_exporter
