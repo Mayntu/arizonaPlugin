@@ -86,6 +86,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /sys:/sys
       - /var/lib/docker:/var/lib/docker
+      - /sys/fs/cgroup:/sys/fs/cgroup
     deploy:
       resources:
         limits:
