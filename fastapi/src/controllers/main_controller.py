@@ -134,7 +134,7 @@ async def api_calc_tax(token_id : str, request : CalcTaxRequest):
         return JSONResponse(content={"message" : f"internal server error : {e}"}, status_code=500)
 
 
-@api_router.post("/search_property/{token_id}")
+@api_router.post("/w/{token_id}")
 async def api_search_property(token_id : str, request : SearchPropertyRequest, redis : aioredis.Redis = Depends(lambda: redis_client.redis)):
     hwid : str = request.hwid
     await validate_token(token_id, hwid)
