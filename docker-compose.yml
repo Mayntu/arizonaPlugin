@@ -15,12 +15,7 @@ services:
       replicas: 2
       update_config:
         parallelism: 1
-        delay: 10s
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/check"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+        delay: 1s
   
   telebot:
     build:
