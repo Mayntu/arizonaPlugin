@@ -5,7 +5,7 @@ from math import ceil, floor
 from redis import asyncio as aioredis
 
 from src.database.dto.api_requests import (
-    GetCaptchasRequest, ConvertTimeRequest, CheckServerRequest, CheckServerInServersRequest, CalcTaxRequest, SearchPropertyRequest
+    GetCaptchasRequest, ConvertTimeRequest, CheckServerRequest, CheckServerInServersRequest, CalcTaxRequest, SearchPropertyRequest, PaydayStatPostRequest, PaydayStatGetByServerNumberRequest
 )
 from src.database.dto.api_responses import (
     CalcTaxResponse
@@ -15,8 +15,12 @@ from src.database.settings import (
     ARIZONA_SERVERS,
     ARIZONA_IP_LIST,
     ARIZONA_MAP_URL,
-    PROPS
+    ASC,
+    DESC,
+    PROPS,
+    payday_stats_table
 )
+from src.database.schemas.payday_stats_schema import PaydayStatSchema
 
 import httpx
 import json
@@ -128,7 +132,7 @@ async def search_property(request : SearchPropertyRequest, redis : aioredis.Redi
         
         map_data: dict = response.json()
 
-        # Кэшируем данные на 10 минут (600 секунд)
+        # кэшируем данные на 10 минут (600 секунд)
         await redis.setex(cache_key, 600, json.dumps(map_data))
 
 
@@ -161,6 +165,37 @@ async def search_property(request : SearchPropertyRequest, redis : aioredis.Redi
 
     
     return owners_info
+
+
+async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
+    last_payday_stat_optional : PaydayStatSchema = await payday_stats_table.find_one({"server_number" : request.server_number}, sort=[("datetime", DESC)])
+
+    print(last_payday_stat_optional)
+    
+    payday_stat_schema : PaydayStatSchema = PaydayStatSchema(server_number=request.server_number, properties=request.properties, datetime=datetime.now())
+
+    if last_payday_stat_optional is None:
+        print("inserting")
+        await payday_stats_table.insert_one(payday_stat_schema.model_dump(by_alias=True))
+        return
+    
+    last_payday_stat : PaydayStatSchema = PaydayStatSchema(**last_payday_stat_optional)
+
+    if await payday_stats_table.count_documents({"server_number" : request.server_number}) >= 20:
+        print("deleting")
+        await payday_stats_table.delete_one(
+            {
+                "_id" : (await payday_stats_table.find_one({"server_number" : request.server_number}, sort=[("datetime", ASC)])).get("_id")
+            }
+        )
+
+    if payday_stat_schema.can_overwrite(last_payday_stat):
+        print("overinserting")
+        await payday_stats_table.insert_one(payday_stat_schema.model_dump(by_alias=True))
+
+
+async def payday_stats_by_server_number(request : PaydayStatGetByServerNumberRequest) -> list[PaydayStatSchema]:
+    return await payday_stats_table.find({"server_number" : request.server_number}).to_list(length=None)
 
 
 

@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import ASCENDING as ASC, DESCENDING as DESC
 from os import environ
 
 try:
@@ -66,6 +67,7 @@ try:
     mongodb_client = AsyncIOMotorClient(mongodb_uri, uuidRepresentation="standard")
     database = mongodb_client[database_name]
     tokens_table = database["tokens"]
+    payday_stats_table = database["payday_stats"]
 
     
     async def check_connection():

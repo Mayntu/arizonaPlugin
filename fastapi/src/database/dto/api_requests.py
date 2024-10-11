@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from enum import Enum
 from typing import Optional
+from src.database.schemas.payday_stats_schema import PaydayStatSchema
 
 class HwidRequest(BaseModel):
     hwid : str
@@ -57,3 +58,12 @@ class SearchPropertyRequest(HwidRequest):
     # searchInRange : bool
     # searchProperties : SearchPropertyEnum
     # hasProperty : HasPropertyEnum
+
+
+class PaydayStatPostRequest(HwidRequest):
+    server_number : int
+    properties : list[PaydayStatSchema.Property]
+
+
+class PaydayStatGetByServerNumberRequest(HwidRequest):
+    server_number : int

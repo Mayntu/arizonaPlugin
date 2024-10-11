@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Body, HTTPException, Depends, status
+from fastapi import APIRouter, Body, BackgroundTasks, HTTPException, Depends, status
 from fastapi.responses import JSONResponse
 from redis import asyncio as aioredis
 
-from src.database.schemas.token_schema import TokenSchema
+from src.database.schemas.payday_stats_schema import PaydayStatSchema
 
 from src.database.dto.api_requests import (
     ValidateTokenRequest,
@@ -11,7 +11,9 @@ from src.database.dto.api_requests import (
     CheckServerRequest,
     CheckServerInServersRequest,
     CalcTaxRequest,
-    SearchPropertyRequest
+    SearchPropertyRequest,
+    PaydayStatPostRequest,
+    PaydayStatGetByServerNumberRequest
 )
 from src.database.dto.api_responses import (
     CalcTaxResponse,
@@ -30,7 +32,9 @@ from src.services.captcha_service import (
     check_server_is_in_list,
     check_server_is_in_servers,
     calc_tax,
-    search_property
+    search_property,
+    handle_payday_stats,
+    payday_stats_by_server_number
 )
 
 from src.database.redis_client import redis_client
@@ -164,3 +168,19 @@ async def api_get_expire_time(token_id : str, request : ValidateTokenRequest) ->
     await validate_token(token_id, hwid)
 
     return await get_expire_time(token_id)
+
+
+@api_router.post("/payday_stats/{token_id}", status_code=201)
+async def post_payday_stats(token_id : str, request : PaydayStatPostRequest, background_tasks : BackgroundTasks) -> None:
+    hwid : str = request.hwid
+    await validate_token(token_id=token_id, hwid=hwid)
+
+    background_tasks.add_task(handle_payday_stats, request)
+
+
+@api_router.post("/payday_stats/{token_id}/server", response_model=list[PaydayStatSchema], status_code=200)
+async def get_payday_stats(token_id : str, request : PaydayStatGetByServerNumberRequest) -> list[PaydayStatSchema]:
+    hwid : str = request.hwid
+    await validate_token(token_id=token_id, hwid=hwid)
+
+    return await payday_stats_by_server_number(request=request)
