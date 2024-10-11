@@ -15,7 +15,7 @@ services:
       replicas: 2
       update_config:
         parallelism: 1
-        delay: 1s
+        delay: 10s
   
   telebot:
     build:
