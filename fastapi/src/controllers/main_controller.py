@@ -45,7 +45,7 @@ def check():
     return 200
 
 
-@api_router.post("/w", response_model=dict[str, str])
+@api_router.post("/token", response_model=dict[str, str])
 async def api_create_token(data = Body()) -> dict[str, str]:
     try:
         key : str = data.get("secret")
