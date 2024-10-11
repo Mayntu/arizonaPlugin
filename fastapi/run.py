@@ -8,5 +8,5 @@ async def main():
     server = uvicorn.Server(config)
     await server.serve()
 
-if __name__ == "__main__":#
+if __name__ == "__main__":
     asyncio.run(main())
