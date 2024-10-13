@@ -193,7 +193,7 @@ async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
 
 
 async def payday_stats_by_server_name(request : PaydayStatGetByServerNameRequest) -> list[PaydayStatSchema]:
-    return await payday_stats_table.find({"server_name" : request.server_name.lower()}).to_list(length=None)
+    return await payday_stats_table.find({"server_name" : request.server_name.lower()}).sort("datetime", DESC).to_list(length=None)
 
 
 
