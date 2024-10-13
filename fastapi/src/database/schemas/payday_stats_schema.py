@@ -5,16 +5,17 @@ from datetime import datetime
 
 class PaydayStatSchema(BaseModel):
     id : UUID = Field(default_factory=uuid4, alias="_id")
-    server_number : int
+    server_name : str
     properties : list["Property"]
     datetime : datetime
     
     class Property(BaseModel):
         id : int
         payday_count : int
+        is_house : str
 
         def equals(self, other : "Property") -> bool:
-            return self.id == other.id and self.payday_count == other.payday_count
+            return self.id == other.id and self.payday_count == other.payday_count and self.is_house == other.is_house
 
 
     class Config:

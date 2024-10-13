@@ -61,9 +61,9 @@ class SearchPropertyRequest(HwidRequest):
 
 
 class PaydayStatPostRequest(HwidRequest):
-    server_number : int
+    server_name : str
     properties : list[PaydayStatSchema.Property]
 
 
-class PaydayStatGetByServerNumberRequest(HwidRequest):
-    server_number : int
+class PaydayStatGetByServerNameRequest(HwidRequest):
+    server_name : str

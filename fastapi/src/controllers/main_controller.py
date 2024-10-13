@@ -34,7 +34,7 @@ from src.services.captcha_service import (
     calc_tax,
     search_property,
     handle_payday_stats,
-    payday_stats_by_server_number
+    payday_stats_by_server_name
 )
 
 from src.database.redis_client import redis_client
@@ -183,4 +183,4 @@ async def get_payday_stats(token_id : str, request : PaydayStatGetByServerNumber
     hwid : str = request.hwid
     await validate_token(token_id=token_id, hwid=hwid)
 
-    return await payday_stats_by_server_number(request=request)
+    return await payday_stats_by_server_name(request=request)

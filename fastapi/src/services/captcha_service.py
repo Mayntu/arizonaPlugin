@@ -5,7 +5,7 @@ from math import ceil, floor
 from redis import asyncio as aioredis
 
 from src.database.dto.api_requests import (
-    GetCaptchasRequest, ConvertTimeRequest, CheckServerRequest, CheckServerInServersRequest, CalcTaxRequest, SearchPropertyRequest, PaydayStatPostRequest, PaydayStatGetByServerNumberRequest
+    GetCaptchasRequest, ConvertTimeRequest, CheckServerRequest, CheckServerInServersRequest, CalcTaxRequest, SearchPropertyRequest, PaydayStatPostRequest, PaydayStatGetByServerNameRequest
 )
 from src.database.dto.api_responses import (
     CalcTaxResponse
@@ -168,11 +168,11 @@ async def search_property(request : SearchPropertyRequest, redis : aioredis.Redi
 
 
 async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
-    last_payday_stat_optional : PaydayStatSchema = await payday_stats_table.find_one({"server_number" : request.server_number}, sort=[("datetime", DESC)])
+    last_payday_stat_optional : dict = await payday_stats_table.find_one({"server_name" : request.server_name}, sort=[("datetime", DESC)])
 
     print(last_payday_stat_optional)
     
-    payday_stat_schema : PaydayStatSchema = PaydayStatSchema(server_number=request.server_number, properties=request.properties, datetime=datetime.now())
+    payday_stat_schema : PaydayStatSchema = PaydayStatSchema(server_name=request.server_name, properties=request.properties, datetime=datetime.now())
 
     if last_payday_stat_optional is None:
         print("inserting")
@@ -181,11 +181,11 @@ async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
     
     last_payday_stat : PaydayStatSchema = PaydayStatSchema(**last_payday_stat_optional)
 
-    if await payday_stats_table.count_documents({"server_number" : request.server_number}) >= 20:
+    if await payday_stats_table.count_documents({"server_name" : request.server_name}) >= 20:
         print("deleting")
         await payday_stats_table.delete_one(
             {
-                "_id" : (await payday_stats_table.find_one({"server_number" : request.server_number}, sort=[("datetime", ASC)])).get("_id")
+                "_id" : (await payday_stats_table.find_one({"server_name" : request.server_name}, sort=[("datetime", ASC)])).get("_id")
             }
         )
 
@@ -194,8 +194,8 @@ async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
         await payday_stats_table.insert_one(payday_stat_schema.model_dump(by_alias=True))
 
 
-async def payday_stats_by_server_number(request : PaydayStatGetByServerNumberRequest) -> list[PaydayStatSchema]:
-    return await payday_stats_table.find({"server_number" : request.server_number}).to_list(length=None)
+async def payday_stats_by_server_name(request : PaydayStatGetByServerNameRequest) -> list[PaydayStatSchema]:
+    return await payday_stats_table.find({"server_name" : request.server_name}).to_list(length=None)
 
 
 
