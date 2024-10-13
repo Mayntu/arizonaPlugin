@@ -13,7 +13,7 @@ from src.database.dto.api_requests import (
     CalcTaxRequest,
     SearchPropertyRequest,
     PaydayStatPostRequest,
-    PaydayStatGetByServerNumberRequest
+    PaydayStatGetByServerNameRequest
 )
 from src.database.dto.api_responses import (
     CalcTaxResponse,
@@ -179,7 +179,7 @@ async def post_payday_stats(token_id : str, request : PaydayStatPostRequest, bac
 
 
 @api_router.post("/payday_stats/{token_id}/server", response_model=list[PaydayStatSchema], status_code=200)
-async def get_payday_stats(token_id : str, request : PaydayStatGetByServerNumberRequest) -> list[PaydayStatSchema]:
+async def get_payday_stats(token_id : str, request : PaydayStatGetByServerNameRequest) -> list[PaydayStatSchema]:
     hwid : str = request.hwid
     await validate_token(token_id=token_id, hwid=hwid)
 
