@@ -168,7 +168,7 @@ async def search_property(request : SearchPropertyRequest, redis : aioredis.Redi
 
 
 async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
-    last_payday_stat_optional : dict = await payday_stats_table.find_one({"server_name" : request.server_name}, sort=[("datetime", DESC)])
+    last_payday_stat_optional : dict = await payday_stats_table.find_one({"server_name" : request.server_name.lower()}, sort=[("datetime", DESC)])
     
     payday_stat_schema : PaydayStatSchema = PaydayStatSchema(server_name=request.server_name.lower(), properties=request.properties, datetime=datetime.now())
 

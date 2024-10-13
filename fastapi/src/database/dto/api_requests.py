@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from enum import Enum
 from typing import Optional
 from src.database.schemas.payday_stats_schema import PaydayStatSchema
@@ -64,6 +64,10 @@ class PaydayStatPostRequest(HwidRequest):
     server_name : str
     properties : list[PaydayStatSchema.Property]
 
+    model_config = ConfigDict(str_to_lower=True)
+
 
 class PaydayStatGetByServerNameRequest(HwidRequest):
     server_name : str
+
+    model_config = ConfigDict(str_to_lower=True)
