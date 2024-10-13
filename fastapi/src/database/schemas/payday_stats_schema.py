@@ -12,7 +12,7 @@ class PaydayStatSchema(BaseModel):
     class Property(BaseModel):
         id : int
         payday_count : int
-        is_house : str
+        is_house : bool
 
         def equals(self, other : "Property") -> bool:
             return self.id == other.id and self.payday_count == other.payday_count and self.is_house == other.is_house
