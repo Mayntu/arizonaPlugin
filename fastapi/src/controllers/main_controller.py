@@ -158,7 +158,7 @@ async def api_search_property(token_id : str, request : SearchPropertyRequest, r
     except HTTPException as e:
         return JSONResponse(content={"message" : e.detail}, status_code=e.status_code)
     except Exception as e:
-        print("internal server error : " + {e})
+        print("internal server error : " + str(e))
         return JSONResponse(content={"message" : f"internal server error : {e}"}, status_code=500)
 
 
