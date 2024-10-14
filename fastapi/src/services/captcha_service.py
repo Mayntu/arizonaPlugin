@@ -117,23 +117,34 @@ async def search_property(request : SearchPropertyRequest, redis : aioredis.Redi
     }
     cache_key = f"arizona_map_{request.serverNumber}"
     cached_data = await redis.get(cache_key)
+    print("first")
 
     if cached_data:
         print("Данные взяты из кэша")
         map_data = json.loads(cached_data)
     else:
-        response: httpx.Response = await make_get_request(
-            headers=arizona_map_headers,
-            url=ARIZONA_MAP_URL + f"/{request.serverNumber}"
-        )
+        print("second")
+        try:
+            response: httpx.Response = await make_get_request(
+                headers=arizona_map_headers,
+                url=ARIZONA_MAP_URL + f"/{request.serverNumber}"
+            )
+        except Exception as e:
+            print(f"exception : {e}")
+            raise HTTPException(status_code=500, detail="arizona map api not working")
 
         if not response.status_code in range(190, 230):
+            print("exception")
             raise HTTPException(status_code=500, detail="arizona map api not working")
         
+        print("go")
         map_data: dict = response.json()
+
+        print("redis")
 
         # кэшируем данные на 10 минут (600 секунд)
         await redis.setex(cache_key, 600, json.dumps(map_data))
+        print("nice")
 
 
     props : list[dict] = map_data["houses"]["onAuction"] + map_data["houses"]["hasOwner"] + map_data["businesses"]["onAuction"]
@@ -199,8 +210,7 @@ async def payday_stats_by_server_name(request : PaydayStatGetByServerNameRequest
 
 async def make_get_request(url : str, headers : dict = None, data : dict = None):
     async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers, params=data)
-        return response
+        return await client.get(url, headers=headers, params=data)
 
 
 # async def make_post_request(url : str, headers : dict = None, data : dict = None):
