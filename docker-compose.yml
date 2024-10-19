@@ -37,8 +37,10 @@ services:
       - mongodb_data:/data/db
     networks:
       - internal_network
-    expose:
-      - "27017"
+    ports:
+      - "27017:27017"
+    # expose:
+    #   - "27017"
 
   redis:
     image: redis:alpine
@@ -78,10 +80,10 @@ services:
   node_exporter:
     image: prom/node-exporter
     container_name: node_exporter
-    ports:
-      - "127.0.0.1:9100:9100"
     networks:
       - internal_network
+    expose:
+      - 9100
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
     container_name: cadvisor

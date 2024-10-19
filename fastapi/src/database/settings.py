@@ -53,6 +53,8 @@ ARIZONA_IP_LIST = [server_ip["ip"] for server_ip in ARIZONA_SERVERS]
 
 ARIZONA_MAP_URL : str = "https://n-api.arizona-rp.com/api/map"
 
+TOKEN_LIVE_TIME : int = 60*60*24*30
+
 class Prop:
     def __init__(self, title : str, price : int) -> None:
         self.title = title
