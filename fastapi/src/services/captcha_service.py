@@ -22,6 +22,7 @@ from src.database.settings import (
 )
 from src.database.schemas.payday_stats_schema import PaydayStatSchema
 
+import requests
 import httpx
 import json
 
@@ -114,6 +115,7 @@ async def search_property(request : SearchPropertyRequest, redis : aioredis.Redi
         "accept" : "application/json",
         "origin" : "https://arizona-rp.com/",
         "referer" : "https://arizona-rp.com/",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     }
     cache_key = f"arizona_map_{request.serverNumber}"
     cached_data = await redis.get(cache_key)
@@ -125,7 +127,7 @@ async def search_property(request : SearchPropertyRequest, redis : aioredis.Redi
     else:
         print("second")
         try:
-            response: httpx.Response = await make_get_request(
+            response : httpx.Response = await make_async_get_request(
                 headers=arizona_map_headers,
                 url=ARIZONA_MAP_URL + f"/{request.serverNumber}"
             )
@@ -212,9 +214,13 @@ async def payday_stats_by_server_name(request : PaydayStatGetByServerNameRequest
 
 
 
-async def make_get_request(url : str, headers : dict = None, data : dict = None):
+async def make_async_get_request(url : str, headers : dict = None, data : dict = None):
+    if data:
+        async with httpx.AsyncClient() as client:
+            return await client.get(url, headers=headers, params=data)
+    
     async with httpx.AsyncClient() as client:
-        return await client.get(url, headers=headers, params=data)
+        return await client.get(url, headers=headers)
 
 
 # async def make_post_request(url : str, headers : dict = None, data : dict = None):
