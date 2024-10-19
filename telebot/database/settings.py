@@ -14,6 +14,7 @@ try:
     mongodb_client = AsyncIOMotorClient(mongodb_uri, uuidRepresentation="standard")
     database = mongodb_client[database_name]
     buys_table = database["buys"]
+    reports_table = database["reports"]
 
     
     async def check_connection():

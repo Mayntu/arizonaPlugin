@@ -5,73 +5,76 @@ from aiogram.types import (
     LabeledPrice,
     CallbackQuery,
 )
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from datetime import datetime
 
 from core.bot import bot
+from core.settings import (
+    ADMIN_CHAT_IDS,
+    WELCOME_TEXT,
+    INFO_TEXT,
+    LICENSE_TEXT,
+    BUY_TEXT
+)
 from core.pay_yoomoney import (
     get_ticket,
     check_payment
 )
 from core.utils import (
     create_keyboard,
-    get_token
+    get_token,
+    start_keyboard,
+    is_rate_limited,
+    report,
+    save_report_to_db
 )
+from database.schemas.report_schema import ReportSchema
 
 main_router : Router = Router()
 
 
-PRICE : LabeledPrice = LabeledPrice(label="Подписка на 1 месяц", amount=100*100) # 100 RU
+class ReportStates(StatesGroup):
+    waiting_for_report = State()
+
 
 
 @main_router.message(Command(commands=["start"]))
 async def start_command_handler(message : Message):
-    await bot.send_message(message.chat.id, "test")
-
-# @main_router.message(Command(commands=['buy']))
-# async def buy_handler(message: Message):
-#     if PAYMASTER_TOKEN.split(':')[1] == 'TEST':
-#         await bot.send_message(message.chat.id, "Тестовый платеж!!!")
- 
-#     await bot.send_invoice(message.chat.id,
-#                            title="Подписка на бота",
-#                            description="Активация подписки на бота на 1 месяц",
-#                            provider_token=PAYMASTER_TOKEN,
-#                            currency="rub",
-#                            photo_url="https://www.aroged.com/wp-content/uploads/2022/06/Telegram-has-a-premium-subscription.jpg",
-#                            photo_width=416,
-#                            photo_height=234,
-#                            photo_size=416,
-#                            is_flexible=False,
-#                            prices=[PRICE],
-#                            start_parameter="one-month-subscription",
-#                            payload="test-invoice-payload")
+    await message.answer(WELCOME_TEXT, reply_markup=start_keyboard())
 
 
-# @main_router.pre_checkout_query(lambda query: True)
-# async def pre_checkout_query(pre_checkout_q: PreCheckoutQuery):
-#     await bot.answer_pre_checkout_query(pre_checkout_q.id, ok=True)
+@main_router.message(Command(commands=["info"]))
+async def info_command_handler(message : Message):
+    await bot.send_message(chat_id=message.chat.id, text=INFO_TEXT, parse_mode="Markdown")
 
 
-# @main_router.message(SuccessfulPayment)
-# async def successful_payment(message: Message):
-#     print("SUCCESSFUL PAYMENT:")
-#     payment_info = message.successful_payment.to_python()
-#     for k, v in payment_info.items():
-#         print(f"{k} = {v}")
- 
-#     await bot.send_message(message.chat.id,
-#                            f"Платёж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")
+@main_router.message(Command(commands=["license"]))
+async def license_command_handler(message : Message):
+    await bot.send_message(chat_id=message.chat.id, text=LICENSE_TEXT, parse_mode="Markdown")
 
 
 @main_router.message(Command(commands=["buy"]))
 async def buy_handler(message : Message):
+    user_id = message.from_user.id
+    
+    try:
+        is_limitted, ttl = await is_rate_limited(user_id)
+    except Exception as e:
+        print(f"redis not working - {e}")
+        is_limitted = False
+        for admin in ADMIN_CHAT_IDS:
+            await bot.send_message(admin, text="редис не работает нужен фикс!!!!!!!!!!")
+    
+    if is_limitted:
+        await message.answer(f"Вы уже запросили покупку. Подождите {ttl} секунд перед следующим запросом.")
+        return
+    
     payment_uuid, link = get_ticket()
     await bot.send_message(
         chat_id=message.chat.id,
-        text="Кнопки для оплаты",
-        reply_markup=create_keyboard(
-            url=link,
-            uuid=payment_uuid
-        )
+        text=BUY_TEXT,
+        reply_markup=create_keyboard(url=link, uuid=payment_uuid)
     )
 
 
@@ -79,12 +82,43 @@ async def buy_handler(message : Message):
 async def callback_check_payment(callback_query : CallbackQuery):
     uuid : str = callback_query.data.split("payment_uuid_")[1]
     if await check_payment(uuid=uuid, user_id=str(callback_query.from_user.id)):
-        token : str = await get_token()
+        token : str = await get_token(buy_uuid=uuid)
         await bot.send_message(callback_query.from_user.id, f"Ваш токен : {token}")
     else:
         await bot.send_message(callback_query.from_user.id, "Не оплачено")
 
 
-# @main_router.message()
-# async def message_handler(message : Message):
-#     await bot.send_message(message.chat.id, message.text)
+@main_router.message(Command(commands=['report']))
+async def report_bug(message: Message, state : FSMContext):
+    user_id : int = message.from_user.id
+    
+    report_time : int = await report(user_id=user_id)
+
+    if report_time > 0:
+        await message.reply(f"Вы можете отправить новый отчет через {int(report_time)} секунд.")
+        return
+    
+    await message.reply("Пожалуйста, опишите баг:")
+    await state.set_state(ReportStates.waiting_for_report)
+
+
+@main_router.message(ReportStates.waiting_for_report)
+async def handle_report_response(message: Message, state : FSMContext):
+    user_id = message.from_user.id
+    report_message = message.text
+
+    inserted_id : str = str(await save_report_to_db(
+        report_schema=ReportSchema(
+            user_id=user_id,
+            user_fullname=message.from_user.full_name,
+            user_login=message.from_user.username or "hidden",
+            message=message.text,
+            datetime=datetime.now()
+        )
+    ))
+
+    for admin in ADMIN_CHAT_IDS:
+        await bot.send_message(chat_id=admin, text=f"Отчет номер - {inserted_id} от пользователя @{message.from_user.username or "hidden"} id #{user_id} \n {report_message}")
+    await message.reply("Ваш отчет успешно отправлен. Спасибо!")
+
+    await state.clear()

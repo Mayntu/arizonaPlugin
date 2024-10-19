@@ -33,7 +33,7 @@ def get_ticket() -> tuple:
         quickpay_form="shop",
         targets="Плагин",
         paymentType="SB",
-        sum=2,
+        sum=100,
         label=label
     )
 
@@ -43,6 +43,11 @@ async def check_payment(uuid : str, user_id : str = None) -> bool:
     history = client.operation_history(
         label=uuid
     )
+    # await change_operation_status(
+    #                 uuid=uuid,
+    #                 user_id=user_id or ""
+    #             )
+    # return True
     if await is_not_already_bought_operation(uuid=uuid):
         for operation in history.operations:
             if operation.status == "succeded":
@@ -67,8 +72,9 @@ async def is_not_already_bought_operation(uuid : str) -> bool:
 async def change_operation_status(uuid : str, user_id : str = None):
     buy_schema : BuySchema = BuySchema(
                 _id=UUID(uuid),
-                buy_time=datetime.utcnow(),
-                user_id=user_id or ""
+                buy_time=datetime.now(),
+                user_id=user_id or "",
+                token=""
             )
     
     await buys_table.insert_one(
@@ -76,3 +82,16 @@ async def change_operation_status(uuid : str, user_id : str = None):
             by_alias=True
         )
     )
+
+
+async def insert_token_in_buy_schema(schema_uuid : str, token : str) -> None:
+    try:
+        if await buys_table.find_one(
+            {"_id" : UUID(schema_uuid)}
+        ):
+            await buys_table.update_one(
+                {"_id" : UUID(schema_uuid)},
+                {"$set" : {"token" : token}}
+            )
+    except Exception as e:
+        raise Exception(e)
