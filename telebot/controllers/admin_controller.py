@@ -27,6 +27,10 @@ async def all_reports(message : Message):
 
 
 async def show_page(message : Message, reports : list, page_number : int = 1, query : CallbackQuery = None):
+    if not len(reports) > 0:
+        await message.answer(text="Репортов нет")
+        return
+    
     report = reports[page_number - 1]
     try:
         report_datetime_str : str = report.get("datetime").strftime("%Y-%d-%m %H:%M")
