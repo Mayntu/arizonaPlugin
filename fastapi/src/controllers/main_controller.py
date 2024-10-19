@@ -17,7 +17,8 @@ from src.database.dto.api_requests import (
 )
 from src.database.dto.api_responses import (
     CalcTaxResponse,
-    ExpireTimeResponse
+    ExpireTimeResponse,
+    GetPaydayStatsByServerNameResponse
 )
 
 from src.services.token_service import(
@@ -179,8 +180,8 @@ async def post_payday_stats(token_id : str, request : PaydayStatPostRequest, bac
     background_tasks.add_task(handle_payday_stats, request)
 
 
-@api_router.post("/payday_stats/{token_id}/server", response_model=list[PaydayStatSchema], status_code=200)
-async def get_payday_stats(token_id : str, request : PaydayStatGetByServerNameRequest) -> list[PaydayStatSchema]:
+@api_router.post("/payday_stats/{token_id}/server", response_model=list[GetPaydayStatsByServerNameResponse], status_code=200)
+async def get_payday_stats(token_id : str, request : PaydayStatGetByServerNameRequest) -> list[GetPaydayStatsByServerNameResponse]:
     hwid : str = request.hwid
     await validate_token(token_id=token_id, hwid=hwid)
 

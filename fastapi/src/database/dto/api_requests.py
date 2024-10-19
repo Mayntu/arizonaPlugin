@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from enum import Enum
 from typing import Optional
+
 from src.database.schemas.payday_stats_schema import PaydayStatSchema
 
 class HwidRequest(BaseModel):

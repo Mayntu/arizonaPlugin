@@ -134,7 +134,7 @@ async def search_property(request : SearchPropertyRequest, redis : aioredis.Redi
             raise HTTPException(status_code=500, detail="arizona map api not working")
 
         if not response.status_code in range(190, 230):
-            print("exception")
+            print(f"exception | status_code : {response.status_code}")
             raise HTTPException(status_code=500, detail="arizona map api not working")
         
         print("go")
@@ -203,8 +203,12 @@ async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
         await payday_stats_table.insert_one(payday_stat_schema.model_dump(by_alias=True))
 
 
-async def payday_stats_by_server_name(request : PaydayStatGetByServerNameRequest) -> list[PaydayStatSchema]:
-    return await payday_stats_table.find({"server_name" : request.server_name.lower()}).sort("datetime", DESC).to_list(length=None)
+async def payday_stats_by_server_name(request : PaydayStatGetByServerNameRequest) -> list[dict]:
+    payday_stats : list[dict] = await payday_stats_table.find({"server_name" : request.server_name.lower()}).sort("datetime", DESC).to_list(length=None)
+    for payday_stat in payday_stats:
+        if payday_stat.get("datetime"):
+            payday_stat["datetime"] = payday_stat.get("datetime").strftime("%H:%M:%S") + " MSK"
+    return payday_stats
 
 
 

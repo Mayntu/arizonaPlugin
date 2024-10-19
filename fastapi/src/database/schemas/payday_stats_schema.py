@@ -10,7 +10,7 @@ class PaydayStatSchema(BaseModel):
     datetime : datetime
     
     class Property(BaseModel):
-        id : int
+        id : str
         payday_count : int
         is_house : bool
 

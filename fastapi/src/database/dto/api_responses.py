@@ -1,4 +1,7 @@
 from pydantic import BaseModel
+from uuid import UUID
+
+from src.database.schemas.payday_stats_schema import PaydayStatSchema
 
 class CalcTaxResponse(BaseModel):
     hours : int
@@ -9,3 +12,10 @@ class CalcTaxResponse(BaseModel):
 
 class ExpireTimeResponse(BaseModel):
     date : str
+
+
+class GetPaydayStatsByServerNameResponse(BaseModel):
+    _id : UUID
+    server_name : str
+    properties : list[PaydayStatSchema.Property]
+    datetime : str
