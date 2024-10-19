@@ -35,10 +35,10 @@ services:
     restart: always
     volumes:
       - mongodb_data:/data/db
-    ports:
-      - "27017:27017"
     networks:
       - internal_network
+    expose:
+      - "27017"
 
   redis:
     image: redis:alpine
@@ -79,7 +79,7 @@ services:
     image: prom/node-exporter
     container_name: node_exporter
     ports:
-      - "9100:9100"
+      - "127.0.0.1:9100:9100"
     networks:
       - internal_network
   cadvisor:
