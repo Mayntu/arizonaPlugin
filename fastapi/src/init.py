@@ -15,7 +15,7 @@ async def create_app() -> FastAPI:
     origins = [
         "http://localhost:5000",
         
-    ]#
+    ]
 
     
     app.add_middleware(
