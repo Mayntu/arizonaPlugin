@@ -64,7 +64,7 @@ class SearchPropertyRequest(HwidRequest):
 class PaydayStatPostRequest(HwidRequest):
     server_name : str
     properties : list[PaydayStatSchema.Property]
-    page_number : Optional[int]
+    page_number : Optional[int] = None
 
     model_config = ConfigDict(str_to_lower=True)
 

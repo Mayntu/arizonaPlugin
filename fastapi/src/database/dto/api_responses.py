@@ -20,4 +20,4 @@ class GetPaydayStatsByServerNameResponse(BaseModel):
     server_name : str
     properties : list[PaydayStatSchema.Property]
     datetime : str
-    page_number : Optional[int]
+    page_number : Optional[int] = None

@@ -9,7 +9,7 @@ class PaydayStatSchema(BaseModel):
     server_name : str
     properties : list["Property"]
     datetime : datetime
-    page_number : Optional[int]
+    page_number : Optional[int] = None
     
     class Property(BaseModel):
         id : str
