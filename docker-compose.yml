@@ -37,8 +37,10 @@ services:
       - mongodb_data:/data/db
     networks:
       - internal_network
-    expose:
-      - "27017"
+    ports:
+      - "27017:27017"
+    # expose:
+    #   - "27017"
 
   redis:
     image: redis:alpine
