@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from uuid import UUID
+from typing import Optional
 
 from src.database.schemas.payday_stats_schema import PaydayStatSchema
 
@@ -19,3 +20,4 @@ class GetPaydayStatsByServerNameResponse(BaseModel):
     server_name : str
     properties : list[PaydayStatSchema.Property]
     datetime : str
+    page_number : Optional[int]

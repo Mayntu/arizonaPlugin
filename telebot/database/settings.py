@@ -15,6 +15,7 @@ try:
     database = mongodb_client[database_name]
     buys_table = database["buys"]
     reports_table = database["reports"]
+    ideas_table = database["ideas"]
 
     
     async def check_connection():

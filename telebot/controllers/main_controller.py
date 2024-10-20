@@ -26,16 +26,20 @@ from core.utils import (
     get_token,
     start_keyboard,
     is_rate_limited,
-    report,
-    save_report_to_db
+    check_report_timeout,
+    check_idea_timeout,
+    save_report_to_db,
+    save_idea_to_db
 )
 from database.schemas.report_schema import ReportSchema
+from database.schemas.idea_schema import IdeaSchema
 
 main_router : Router = Router()
 
 
 class ReportStates(StatesGroup):
     waiting_for_report = State()
+    waiting_for_idea   = State()
 
 
 
@@ -92,14 +96,28 @@ async def callback_check_payment(callback_query : CallbackQuery):
 async def report_bug(message: Message, state : FSMContext):
     user_id : int = message.from_user.id
     
-    report_time : int = await report(user_id=user_id)
+    report_timeout : int = await check_report_timeout(user_id=user_id)
 
-    if report_time > 0:
-        await message.reply(f"Вы можете отправить новый отчет через {int(report_time)} секунд.")
+    if report_timeout > 0:
+        await message.reply(f"Вы можете отправить новый отчет через {int(report_timeout)} секунд.")
         return
     
     await message.reply("Пожалуйста, опишите баг:")
     await state.set_state(ReportStates.waiting_for_report)
+
+
+@main_router.message(Command(commands=['idea']))
+async def scripts_idea(message: Message, state : FSMContext):
+    user_id : int = message.from_user.id
+    
+    idea_timeout : int = await check_idea_timeout(user_id=user_id)
+
+    if idea_timeout > 0:
+        await message.reply(f"Вы можете отправить новую идею через {int(idea_timeout)} секунд.")
+        return
+    
+    await message.reply("Пожалуйста, опишите идею:")
+    await state.set_state(ReportStates.waiting_for_idea)
 
 
 @main_router.message(ReportStates.waiting_for_report)
@@ -120,5 +138,27 @@ async def handle_report_response(message: Message, state : FSMContext):
     for admin in ADMIN_CHAT_IDS:
         await bot.send_message(chat_id=admin, text=f"Отчет номер - {inserted_id} от пользователя @{message.from_user.username or "hidden"} id #{user_id} \n {report_message}")
     await message.reply("Ваш отчет успешно отправлен. Спасибо!")
+
+    await state.clear()
+
+
+@main_router.message(ReportStates.waiting_for_idea)
+async def handle_idea_response(message: Message, state : FSMContext):
+    user_id = message.from_user.id
+    idea_message = message.text
+
+    inserted_id : str = str(await save_idea_to_db(
+        idea_schema=IdeaSchema(
+            user_id=user_id,
+            user_fullname=message.from_user.full_name,
+            user_login=message.from_user.username or "hidden",
+            message=message.text,
+            datetime=datetime.now()
+        )
+    ))
+
+    for admin in ADMIN_CHAT_IDS:
+        await bot.send_message(chat_id=admin, text=f"Идея номер - {inserted_id} от пользователя @{message.from_user.username or "hidden"} id #{user_id} \n {idea_message}")
+    await message.reply("Ваша идея успешно отправлена. Спасибо!")
 
     await state.clear()

@@ -1,8 +1,8 @@
 from pydantic import BaseModel, Field
-from datetime import datetime
 from bson import ObjectId
+from datetime import datetime
 
-class ReportSchema(BaseModel):
+class IdeaSchema(BaseModel):
     id : ObjectId = Field(default_factory=ObjectId, alias="_id")
     user_id : int
     user_fullname : str

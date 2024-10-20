@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from random import randint
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from math import ceil, floor
 from redis import asyncio as aioredis
 
@@ -183,7 +184,7 @@ async def search_property(request : SearchPropertyRequest, redis : aioredis.Redi
 async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
     last_payday_stat_optional : dict = await payday_stats_table.find_one({"server_name" : request.server_name.lower()}, sort=[("datetime", DESC)])
     
-    payday_stat_schema : PaydayStatSchema = PaydayStatSchema(server_name=request.server_name.lower(), properties=request.properties, datetime=datetime.now())
+    payday_stat_schema : PaydayStatSchema = PaydayStatSchema(server_name=request.server_name.lower(), properties=request.properties, datetime=datetime.now(ZoneInfo("Europe/Moscow")), page_number=request.page_number)
 
     if last_payday_stat_optional is None:
         print("inserting")
@@ -209,7 +210,10 @@ async def payday_stats_by_server_name(request : PaydayStatGetByServerNameRequest
     payday_stats : list[dict] = await payday_stats_table.find({"server_name" : request.server_name.lower()}).sort("datetime", DESC).to_list(length=None)
     for payday_stat in payday_stats:
         if payday_stat.get("datetime"):
-            payday_stat["datetime"] = payday_stat.get("datetime").strftime("%H:%M:%S") + " MSK"
+            utc_datetime : datetime = payday_stat.get("datetime")
+
+            moscow_time = utc_datetime.astimezone(ZoneInfo("Europe/Moscow"))
+            payday_stat["datetime"] = moscow_time.strftime("%H:%M:%S") + " MSK"
     return payday_stats
 
 

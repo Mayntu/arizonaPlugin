@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from uuid import UUID, uuid4
 from datetime import datetime
+from typing import Optional
 
 
 class PaydayStatSchema(BaseModel):
@@ -8,10 +9,11 @@ class PaydayStatSchema(BaseModel):
     server_name : str
     properties : list["Property"]
     datetime : datetime
+    page_number : Optional[int]
     
     class Property(BaseModel):
         id : str
-        payday_count : int
+        payday_count : Optional[int]
         is_house : bool
 
         def equals(self, other : "Property") -> bool:

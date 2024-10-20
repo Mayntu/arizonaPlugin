@@ -11,13 +11,48 @@ YOOMONEY_WALLET_ID : str = environ.get("YOOMONEY_WALLET_ID")
 TOKEN_PASS : str = environ.get("TOKEN_PASS")
 ADMIN_CHAT_IDS = environ.get("ADMIN_CHAT_IDS").split(",")
 
+
+class RedisKeys(Enum):
+    REPORTS = ("reports", 600)
+    IDEAS = ("ideas", 600)
+    def __init__(self, key_name : str, key_duration : int) -> None:
+        self.key_name = key_name
+        self.key_duration = key_duration
+
+
+class QueryDataKeys(Enum):
+    REPORTS = ("repots_page_number_{current_page}", "reports_ignore", "Репортов нет")
+    IDEAS = ("ideas_page_number_{current_page}", "ideas_ignore", "Никто не загрузил идеи")
+
+    def __init__(self, page_number_key : str, ignore_key : str, empty_array_text : str) -> None:
+        self.page_number_key = page_number_key
+        self.ignore_key = ignore_key
+        self.empty_array_text = empty_array_text
+
+
 FASTAPI_URL : str = "http://fastapi:5000"
 REQUEST_LIMIT_TTL : int = 60
 
-class RedisKeys(Enum):
-    reports = "reports"
+REPORTS_TIMEOUT : int = 300 # 300 seconds
+IDEAS_TIMEOUT : int = 300
 
-WELCOME_TEXT : tuple[str] = ("👋 Добро пожаловать!\n\n""Выберите действие:\n""💸 Купить продукт\n""ℹ️ Узнать информацию о продукте\n""📜 Прочитать лицензионное соглашение\n""📝Написать отчёт о баге (выдача бонусов за важные баги)")
+
+
+REPORT_TEXT : str = """Репорт #{report_id}
+@{user_login} (id {user_id}) {report_datetime}
+Имя аккаунта {user_fullname}
+
+    {report_text}
+"""
+
+IDEA_TEXT : str = """Идея #{idea_id}
+@{user_login} (id {user_id}) {idea_datetime}
+Имя аккаунта {user_fullname}
+
+    {idea_text}
+"""
+
+WELCOME_TEXT : tuple[str] = ("👋 Добро пожаловать!\n\n""Выберите действие:\n""💸 Купить продукт\n""ℹ️ Узнать информацию о продукте\n""📜 Прочитать лицензионное соглашение\n""📝Написать отчёт о баге (выдача бонусов за важные баги)\n""💡Предложить идею (так же выдача бонусов за интересные идеи)")
 
 INFO_TEXT : str = """🛠️ Скрипт "Tool Of Catcher" (Инструмент для Ловца) 🌟
 

@@ -7,6 +7,8 @@ from core.settings import (
     FASTAPI_URL,
     TOKEN_PASS,
     REQUEST_LIMIT_TTL,
+    REPORTS_TIMEOUT,
+    IDEAS_TIMEOUT,
     RedisKeys
 )
 from core.pay_yoomoney import (
@@ -14,9 +16,11 @@ from core.pay_yoomoney import (
 )
 
 from database.settings import (
-    reports_table
+    reports_table,
+    ideas_table
 )
 from database.schemas.report_schema import ReportSchema
+from database.schemas.idea_schema import IdeaSchema
 
 import httpx
 import json
@@ -36,7 +40,8 @@ def start_keyboard():
             KeyboardButton(text="/buy 💸"),
             KeyboardButton(text="/info ℹ️"),
             KeyboardButton(text="/license 📜"),
-            KeyboardButton(text="/report 📝")
+            KeyboardButton(text="/report 📝"),
+            KeyboardButton(text="/idea 💡")
         ]
     ]
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True)
@@ -92,14 +97,24 @@ async def is_rate_limited(user_id: int) -> tuple:
         return False, 0
 
 
-async def report(user_id : int) -> int:
+async def check_report_timeout(user_id : int) -> int:
     key : str = f"report_limit:{user_id}"
     last_report_time = await redis.ttl(key)
 
     if not await redis.exists(key):
-        await redis.set(key, "1", ex=300)
+        await redis.set(key, "1", ex=REPORTS_TIMEOUT)
 
     return last_report_time
+
+
+async def check_idea_timeout(user_id : int) -> int:
+    key : str = f"idea_limit:{user_id}"
+    last_idea_time = await redis.ttl(key)
+
+    if not await redis.exists(key):
+        await redis.set(key, "1", ex=IDEAS_TIMEOUT)
+
+    return last_idea_time
 
 
 def json_serializer(obj):
@@ -123,8 +138,18 @@ def json_deserializer(data):
 
 async def save_report_to_db(report_schema : ReportSchema) -> ObjectId:
     inserted_report = await reports_table.insert_one(report_schema.model_dump(by_alias=True))
-    if await redis.exists(RedisKeys.reports.value):
-        reports : str = json.dumps(await reports_table.find().sort("datetime", DESC).limit(10).to_list(length=None), default=json_serializer)
-        await redis.set(RedisKeys.reports.value, reports, ex=600)
+    if await redis.exists(RedisKeys.REPORTS.key_name):
+        reports : str = json.dumps(await reports_table.find({"is_active" : True}).sort("datetime", DESC).limit(10).to_list(length=None), default=json_serializer)
+        await redis.set(RedisKeys.REPORTS.key_name, reports, ex=RedisKeys.REPORTS.key_duration)
     
     return inserted_report.inserted_id
+
+
+async def save_idea_to_db(idea_schema : IdeaSchema) -> ObjectId:
+    inserted_idea = await ideas_table.insert_one(idea_schema.model_dump(by_alias=True))
+    if await redis.exists(RedisKeys.IDEAS.key_name):
+        ideas : str = json.dumps(await ideas_table.find({"is_active" : True}).sort("datetime", DESC).limit(20).to_list(length=None), default=json_serializer)
+        await redis.set(RedisKeys.IDEAS.key_name, ideas, ex=RedisKeys.IDEAS.key_duration)
+    
+    return inserted_idea.inserted_id
+
