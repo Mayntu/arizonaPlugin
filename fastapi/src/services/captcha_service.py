@@ -213,7 +213,7 @@ async def payday_stats_by_server_name(request : PaydayStatGetByServerNameRequest
             utc_datetime : datetime = payday_stat.get("datetime")
 
             moscow_time = utc_datetime.astimezone(ZoneInfo("Europe/Moscow"))
-            payday_stat["datetime"] = moscow_time.strftime("%H:%M:%S") + " MSK"
+            payday_stat["datetime"] = moscow_time.strftime("%d-%m-%Y %H:%M:%S") + " MSK"
     return payday_stats
 
 
