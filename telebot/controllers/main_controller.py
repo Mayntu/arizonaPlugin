@@ -15,7 +15,9 @@ from core.settings import (
     WELCOME_TEXT,
     INFO_TEXT,
     LICENSE_TEXT,
-    BUY_TEXT
+    BUY_TEXT,
+    REPORT_COMMAND_TEXT,
+    IDEA_COMMAND_TEXT
 )
 from core.pay_yoomoney import (
     get_ticket,
@@ -102,7 +104,7 @@ async def report_bug(message: Message, state : FSMContext):
         await message.reply(f"Вы можете отправить новый отчет через {int(report_timeout)} секунд.")
         return
     
-    await message.reply("Пожалуйста, опишите баг:")
+    await message.reply(REPORT_COMMAND_TEXT, parse_mode="Markdown")
     await state.set_state(ReportStates.waiting_for_report)
 
 
@@ -116,7 +118,7 @@ async def scripts_idea(message: Message, state : FSMContext):
         await message.reply(f"Вы можете отправить новую идею через {int(idea_timeout)} секунд.")
         return
     
-    await message.reply("Пожалуйста, опишите идею:")
+    await message.reply(IDEA_COMMAND_TEXT, parse_mode="Markdown")
     await state.set_state(ReportStates.waiting_for_idea)
 
 
