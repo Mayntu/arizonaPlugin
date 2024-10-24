@@ -5,11 +5,21 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./fastapi/.env
+    volumes:
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - mongo
       - redis
     networks:
       - internal_network
+    environment:
+      - LOGS_FILE_PATH=/app/logs/fastapi.log
+      - LOG_LEVEL=info
     deploy:
       mode: replicated
       replicas: 2

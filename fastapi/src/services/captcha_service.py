@@ -190,8 +190,6 @@ async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
         print("inserting")
         await payday_stats_table.insert_one(payday_stat_schema.model_dump(by_alias=True))
         return
-    
-    last_payday_stat : PaydayStatSchema = PaydayStatSchema(**last_payday_stat_optional)
 
     if await payday_stats_table.count_documents({"server_name" : request.server_name}) >= 20:
         print("deleting")
@@ -201,9 +199,11 @@ async def handle_payday_stats(request : PaydayStatPostRequest) -> None:
             }
         )
 
-    if payday_stat_schema.can_overwrite(last_payday_stat):
-        print("overinserting")
-        await payday_stats_table.insert_one(payday_stat_schema.model_dump(by_alias=True))
+    payday_stat_serialized : dict = payday_stat_schema.model_dump(by_alias=True)
+
+    if not await payday_stats_table.find_one({"server_name" : payday_stat_serialized["server_name"], "properties" : payday_stat_serialized["properties"]}):
+        print("inserting new")
+        await payday_stats_table.insert_one(payday_stat_serialized)
 
 
 async def payday_stats_by_server_name(request : PaydayStatGetByServerNameRequest) -> list[dict]:

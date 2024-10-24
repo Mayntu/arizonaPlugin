@@ -1,7 +1,12 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram import Bot
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup, Message, FSInputFile
 from pymongo import ASCENDING as ASC, DESCENDING as DESC
 from datetime import datetime
+from uuid import uuid4
 from bson import ObjectId
+from urllib.parse import unquote
+from aiohttp import ClientSession
+from os import remove
 
 from core.settings import (
     FASTAPI_URL,
@@ -9,6 +14,7 @@ from core.settings import (
     REQUEST_LIMIT_TTL,
     REPORTS_TIMEOUT,
     IDEAS_TIMEOUT,
+    SCRIPT_DRIVE_URL,
     RedisKeys
 )
 from core.pay_yoomoney import (
@@ -60,6 +66,14 @@ def create_keyboard(url : str, uuid : str) -> InlineKeyboardMarkup:
     return keyboard
 
 
+def undo_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Отменить", callback_data="undo")]
+        ]
+    )
+
+
 async def get_token(buy_uuid : str) -> str:
     data : dict = {
         "secret" : TOKEN_PASS
@@ -97,27 +111,60 @@ async def is_rate_limited(user_id: int) -> tuple:
         return False, 0
 
 
-async def check_report_timeout(user_id : int) -> int:
+async def check_report_timeout(user_id : int, set_timeout : bool) -> int:
     key : str = f"report_limit:{user_id}"
-    last_report_time = await redis.ttl(key)
 
     if not await redis.exists(key):
-        await redis.set(key, "1", ex=REPORTS_TIMEOUT)
+        if set_timeout:
+            await redis.set(key, "1", ex=REPORTS_TIMEOUT)
+        return 0
 
-    return last_report_time
+    return await redis.ttl(key)
 
 
-async def check_idea_timeout(user_id : int) -> int:
+async def check_idea_timeout(user_id : int, set_timeout : bool) -> int:
     key : str = f"idea_limit:{user_id}"
-    last_idea_time = await redis.ttl(key)
 
     if not await redis.exists(key):
-        await redis.set(key, "1", ex=IDEAS_TIMEOUT)
+        if set_timeout:
+            await redis.set(key, "1", ex=IDEAS_TIMEOUT)
+        return 0
 
-    return last_idea_time
+    return await redis.ttl(key)
+
+
+async def send_script_file(bot : Bot, chat_id : str):
+    global SCRIPT_DRIVE_URL
+    try:
+        async with ClientSession() as session:
+            async with session.get(SCRIPT_DRIVE_URL) as response:
+                if response.status != 200:
+                    await bot.send_message(chat_id=chat_id, text=f"Не удалось скачать файл. Статус: {response.status}")
+                    return
+
+                cd = response.headers.get('Content-Disposition')
+                if cd:
+                    file_name = cd.split("filename=")[-1].strip('"')
+                    file_name_unquoted : str = unquote(file_name)
+                    file_name = f"{uuid4()}_{file_name_unquoted}"
+                else:
+                    file_name : str = "downloaded_file"
+                
+                with open(file_name, "wb") as f:
+                    f.write(await response.read())
+                
+    except Exception as e:
+        await bot.send_message(chat_id=chat_id, text=f"Ошибка при скачивании файла: {e}")
+        return
+
+    file_to_send : FSInputFile = FSInputFile(file_name, filename=file_name_unquoted)
+    await bot.send_document(chat_id=chat_id, document=file_to_send, caption="Скрипт")
+
+    remove(file_name)
 
 
 def json_serializer(obj):
+    
     if isinstance(obj, datetime):
         return obj.strftime("%Y-%m-%d %H:%M")
     if isinstance(obj, ObjectId):

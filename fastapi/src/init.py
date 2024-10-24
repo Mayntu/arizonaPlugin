@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from src.database.settings import database, check_connection
-from src.database.redis_client import redis_client
-# import yaml
-
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
+
+from src.database.settings import database, check_connection
+from src.database.redis_client import redis_client
+from src.middlewares.logs_middleware import LogsMiddleware
 
 
 async def create_app() -> FastAPI:
@@ -25,6 +25,7 @@ async def create_app() -> FastAPI:
         allow_methods=["*"],  
         allow_headers=["*"],  
     )
+    app.add_middleware(LogsMiddleware)
 
     try:
         await check_connection()
