@@ -158,7 +158,7 @@ async def send_script_file(bot : Bot, chat_id : str):
         return
 
     file_to_send : FSInputFile = FSInputFile(file_name, filename=file_name_unquoted)
-    await bot.send_document(chat_id=chat_id, document=file_to_send, caption="Скрипт")
+    await bot.send_document(chat_id=chat_id, document=file_to_send)
 
     remove(file_name)
 
