@@ -118,7 +118,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./blocked_ips.conf:/etc/nginx/blocked_ips.conf
+      - ./black_ips.conf:/etc/nginx/black_ips.conf
     depends_on:
       - fastapi
       - telebot
