@@ -9,11 +9,15 @@ setup_logging()
 logger = logging.getLogger("__main__")
 separator_logger = logging.getLogger("separator_logger")
 
+SKIP_URLS : list[str] = ["/metrics"]
 LOGS_SEPARATOR_OK: str = "-----------------------------------------REQUEST INFO-----------------------------------------"
 LOGS_SEPARATOR_ER: str = "-----------------------------------------REQUEST ERROR-----------------------------------------"
 
 class LogsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        if request.url.path in SKIP_URLS:
+            return await call_next(request)
+        
         try:
             request_body = await request.json()
         except Exception:
