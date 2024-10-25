@@ -33,7 +33,7 @@ def get_ticket() -> tuple:
         quickpay_form="shop",
         targets="Плагин",
         paymentType="SB",
-        sum=100,
+        sum=3,
         label=label
     )
 
