@@ -18,6 +18,8 @@ class LogsMiddleware(BaseHTTPMiddleware):
         if request.url.path in SKIP_URLS:
             return await call_next(request)
         
+        client_ip : str = request.client.host
+        
         try:
             request_body = await request.json()
         except Exception:
@@ -36,10 +38,12 @@ class LogsMiddleware(BaseHTTPMiddleware):
             if request_body:
                 logger.error(f"Request body  | {json.dumps(request_body)}")
             logger.error(f"Response body | {response_body.decode('utf-8') if response_body else 'No response body'}")
+            logger.error(f"IP | {client_ip}")
         else:
             separator_logger.info(LOGS_SEPARATOR_OK)
             logger.info(f"{request.method} '{request.url.path}'")
             logger.info(f"Response status {response.status_code}")
+            logger.info(f"IP | {client_ip}")
 
         response.body_iterator = iter([response_body])
         response.body_iterator = self._iter_response_body(response_body)
