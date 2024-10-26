@@ -8,7 +8,7 @@ from src.middlewares.logs_middleware import LogsMiddleware
 
 
 async def create_app() -> FastAPI:
-    app = FastAPI(docs_url="/")
+    app = FastAPI(docs_url=None, redoc_url=None)
 
     Instrumentator().instrument(app).expose(app)
         
