@@ -8,22 +8,6 @@ from database.settings import buys_table
 
 client : Client = Client(token=YOOMONEY_ACCESS_TOKEN)
 
-# label : str = "testwfwfwf"
-# quickpay : Quickpay = Quickpay(
-#     receiver=YOOMONEY_WALLET_ID,
-#     quickpay_form="shop",
-#     targets="Тестовая покупка",
-#     paymentType="SB",
-#     sum=2,
-#     label=label
-# )
-# print(quickpay.base_url)
-# print(quickpay.redirected_url)
-
-# history = client.operation_history(label=label)
-# print(history.operations)
-# for operation in history.operations:
-#     print(operation.status)
 
 
 def get_ticket() -> tuple:
