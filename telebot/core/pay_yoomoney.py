@@ -50,7 +50,7 @@ async def check_payment(uuid : str, user_id : str = None) -> bool:
     # return True
     if await is_not_already_bought_operation(uuid=uuid):
         for operation in history.operations:
-            if operation.status == "succeded":
+            if operation.status in ("succeded", "success", "успешно"):
                 await change_operation_status(
                     uuid=uuid,
                     user_id=user_id or ""
