@@ -12,6 +12,8 @@ TOKEN_PASS : str = environ.get("TOKEN_PASS")
 ADMIN_CHAT_IDS = environ.get("ADMIN_CHAT_IDS").split(",")
 SCRIPT_DRIVE_URL : str = environ.get("SCRIPT_DRIVE_URL")
 
+SCRIPT_COST : int = 140
+
 
 class RedisKeys(Enum):
     REPORTS = ("reports", 600)

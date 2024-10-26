@@ -2,7 +2,7 @@ from yoomoney import Client, Quickpay
 from uuid import UUID, uuid4
 from datetime import datetime
 
-from core.settings import YOOMONEY_ACCESS_TOKEN, YOOMONEY_WALLET_ID
+from core.settings import YOOMONEY_ACCESS_TOKEN, YOOMONEY_WALLET_ID, SCRIPT_COST
 from database.schemas.buy_schema import BuySchema
 from database.settings import buys_table
 
@@ -17,7 +17,7 @@ def get_ticket() -> tuple:
         quickpay_form="shop",
         targets="Плагин",
         paymentType="SB",
-        sum=3,
+        sum=SCRIPT_COST,
         label=label
     )
 
