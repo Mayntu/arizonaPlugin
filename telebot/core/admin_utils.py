@@ -1,6 +1,7 @@
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from pymongo import ASCENDING as ASC, DESCENDING as DESC
 
+from core.bot import bot
 from core.utils import (
     redis,
     json_serializer,
@@ -29,6 +30,12 @@ def admin_required(func):
             return
         return await func(message, *args)
     return wrapper
+
+
+
+async def admin_chats_message(message : str) -> None:
+    for admin_chat_id in ADMIN_CHAT_IDS:
+        await bot.send_message(admin_chat_id, message)
 
 
 async def show_idea_page(message : Message, ideas : list, page_number : int = 1, query : CallbackQuery = None):

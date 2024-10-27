@@ -34,6 +34,9 @@ from core.utils import (
     undo_keyboard,
     send_script_file
 )
+from core.admin_utils import (
+    admin_chats_message
+)
 from database.schemas.report_schema import ReportSchema
 from database.schemas.idea_schema import IdeaSchema
 
@@ -92,13 +95,12 @@ async def callback_check_payment(callback_query : CallbackQuery):
         await bot.send_message(callback_query.from_user.id, "Не оплачено")
     else:
         token : str = await get_token(buy_uuid=uuid)
-        await bot.send_message(callback_query.from_user.id, f"Ваш токен : {token}")
+        await bot.send_message(callback_query.from_user.id, f"Ваш токен {token}")
         await send_script_file(bot=bot, chat_id=callback_query.from_user.id)
 
         await bot.edit_message_reply_markup(chat_id=callback_query.from_user.id, message_id=callback_query.message.message_id, reply_markup=None)
         
-        for admin_chat_id in ADMIN_CHAT_IDS:
-            await bot.send_message(chat_id=admin_chat_id, text=f"Был куплен токен : {token}")
+        await admin_chats_message(f"Был куплен токен {token}")
 
 
 @main_router.message(Command(commands=['report']))
