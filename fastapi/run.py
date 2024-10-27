@@ -1,3 +1,5 @@
+# alpha v0.0.1
+
 import uvicorn
 import asyncio
 from src.init import create_app
