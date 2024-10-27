@@ -92,6 +92,9 @@ async def callback_check_payment(callback_query : CallbackQuery):
         token : str = await get_token(buy_uuid=uuid)
         await bot.send_message(callback_query.from_user.id, f"Ваш токен : {token}")
         await send_script_file(bot=bot, chat_id=callback_query.from_user.id)
+
+        await bot.edit_message_reply_markup(callback_query.from_user.id, callback_query.message.message_id, reply_markup=None)
+        
         for admin_chat_id in ADMIN_CHAT_IDS:
             await bot.send_message(chat_id=admin_chat_id, text=f"Был куплен токен : {token}")
     else:
