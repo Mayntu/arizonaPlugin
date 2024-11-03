@@ -68,6 +68,25 @@ async def api_create_token(data = Body()) -> dict[str, str]:
         return JSONResponse(content={"message" : f"internal server error {e}"}, status_code=500)
 
 
+@api_router.post("/token/custom", response_model=dict[str, str])
+async def api_create_token_custom(data = Body()) -> dict[str, str]:
+    try:
+        key : str = data.get("secret")
+        result : bool = validate_pass(key=key)
+        duration : int = int(data.get("duration"))
+        if not result:
+            return JSONResponse(content={"message" : "not correct key"}, status_code=400)
+        
+        token_id : str = await create_token(duration_month=duration)
+        return JSONResponse(content={"token_id" : token_id}, status_code=201)
+    except HTTPException as e:
+        return JSONResponse(content={"message" : str(e)}, status_code=e.status_code)
+    except AttributeError as e:
+        return JSONResponse(content={"message" : "not correct data"}, status_code=400)
+    except Exception as e:
+        return JSONResponse(content={"message" : f"internal server error {e}"}, status_code=500)
+
+
 @api_router.post("/token/{token_id}/validate")
 async def api_is_token_valid(token_id : str, request : ValidateTokenRequest):
     hwid : str = request.hwid

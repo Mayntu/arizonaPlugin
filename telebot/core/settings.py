@@ -15,6 +15,24 @@ SCRIPT_DRIVE_URL : str = environ.get("SCRIPT_DRIVE_URL")
 SCRIPT_COST : int = 150
 
 
+class ScriptStore(Enum):
+    ONE_MONTH = (1, 150)
+    THREE_MONTH = (3, 350)
+    SIX_MONTH = (6, 590)
+
+    def __init__(self, duration_month : int, cost : int) -> None:
+        self.duration_month = duration_month
+        self.cost = cost
+    
+    @staticmethod
+    def find_by_duration(duration_month : int) -> "ScriptStore":
+        for script in ScriptStore:
+            if duration_month == script.duration_month:
+                return script
+        
+        return None
+
+
 class RedisKeys(Enum):
     REPORTS = ("reports", 600)
     IDEAS = ("ideas", 600)
@@ -153,7 +171,7 @@ LICENSE_TEXT : str = """Приобретая данный скрипт (дале
 После покупки Продукта возврат уплаченных средств не предусмотрен, независимо от причины отказа от использования или прекращения доступа к Продукту.
 """
 
-BUY_TEXT : str = """🛒 Вы выбрали подписку на скрипт сроком на 1 месяц.
+BUY_TEXT : str = """🛒 Вы выбрали подписку на скрипт сроком на {duration} месяц(ев).
 
 💳 Для оплаты нажмите на кнопку "Оплатить". После успешного платежа нажмите "Проверить" 🔍, чтобы убедиться, что всё прошло успешно!
 

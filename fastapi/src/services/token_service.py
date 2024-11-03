@@ -12,13 +12,17 @@ from src.database.dto.api_responses import (
 
 
 
-async def create_token() -> str:
+async def create_token(duration_month : int = None) -> str:
+    token_live_time : int = None
+    if duration_month:
+        token_live_time = 60*60*24*30 * duration_month
+    
     token_schema : TokenSchema = TokenSchema(
         is_activated=False,
         is_ok=True,
         hwid=None,
         created_time=datetime.now(timezone.utc),
-        live_time=TOKEN_LIVE_TIME
+        live_time=token_live_time or TOKEN_LIVE_TIME
     )
     token_inserted = await tokens_table.insert_one(token_schema.model_dump(by_alias=True))
     token_id : str = str(token_inserted.inserted_id)

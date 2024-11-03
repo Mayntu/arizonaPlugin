@@ -2,7 +2,7 @@ from yoomoney import Client, Quickpay
 from uuid import UUID, uuid4
 from datetime import datetime
 
-from core.settings import YOOMONEY_ACCESS_TOKEN, YOOMONEY_WALLET_ID, SCRIPT_COST
+from core.settings import ScriptStore, YOOMONEY_ACCESS_TOKEN, YOOMONEY_WALLET_ID
 from database.schemas.buy_schema import BuySchema
 from database.settings import buys_table
 
@@ -10,14 +10,19 @@ client : Client = Client(token=YOOMONEY_ACCESS_TOKEN)
 
 
 
-def get_ticket() -> tuple:
+def get_ticket(duration_month : int) -> tuple:
+    script_store : ScriptStore = ScriptStore.find_by_duration(
+        duration_month=int(duration_month)
+    )
+    script_cost : int = script_store.cost
+    
     label : str = str(uuid4())
     quickpay : Quickpay = Quickpay(
         receiver=YOOMONEY_WALLET_ID,
         quickpay_form="shop",
         targets="Плагин",
         paymentType="SB",
-        sum=SCRIPT_COST,
+        sum=script_cost,
         label=label
     )
 

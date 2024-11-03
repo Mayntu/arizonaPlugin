@@ -15,6 +15,7 @@ from core.settings import (
     REPORTS_TIMEOUT,
     IDEAS_TIMEOUT,
     SCRIPT_DRIVE_URL,
+    ScriptStore,
     RedisKeys
 )
 from core.pay_yoomoney import (
@@ -53,13 +54,27 @@ def start_keyboard():
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True)
 
 
+def create_duration_keyboard():
+    inline_keyboard : list[InlineKeyboardButton] = []
+    for script in ScriptStore:
+        duration : int = script.duration_month
+        cost : int = script.cost
+        inline_keyboard.append(InlineKeyboardButton(text=f"{duration} месяц(ев) {cost} руб", callback_data=f"duration_{duration}"))
+    
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            inline_keyboard
+        ]
+    )
+    return keyboard
 
-def create_keyboard(url : str, uuid : str) -> InlineKeyboardMarkup:
+
+def create_keyboard(url : str, uuid : str, duration : int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(text="💳 Оплатить", url=url),
-                InlineKeyboardButton(text="🔍 Проверить", callback_data=f"payment_uuid_{uuid}")
+                InlineKeyboardButton(text="🔍 Проверить", callback_data=f"payment_uuid_{uuid}payment_uuid_{duration}")
             ]
         ]
     )
@@ -74,11 +89,18 @@ def undo_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-async def get_token(buy_uuid : str) -> str:
+
+async def is_spam(callback_id: str) -> bool:
+    """Проверяет, обрабатывается ли уже нажатие."""
+    return not await redis.set(callback_id, "processing", nx=True, ex=2)
+
+
+async def get_token(buy_uuid : str, duration : int = 1) -> str:
     data : dict = {
-        "secret" : TOKEN_PASS
+        "secret" : TOKEN_PASS,
+        "duration" : duration
     }
-    response = await make_post_request(url=FASTAPI_URL + "/api/v1/token", data=data)
+    response = await make_post_request(url=FASTAPI_URL + "/api/v1/token/custom", data=data)
     if response.status_code == 200 or response.status_code == 201:
         data : dict = response.json()
         await insert_token_in_buy_schema(
