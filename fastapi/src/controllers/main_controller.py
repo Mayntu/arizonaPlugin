@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, BackgroundTasks, HTTPException, Depends, status
+from fastapi import APIRouter, Body, BackgroundTasks, HTTPException, Depends, status, Request
 from fastapi.responses import JSONResponse
 from redis import asyncio as aioredis
 
@@ -44,6 +44,14 @@ from src.database.redis_client import redis_client
 api_router : APIRouter = APIRouter()
 
 
+
+@api_router.get("/debug-headers")
+async def debug_headers(request: Request):
+    return {
+        "X-Forwarded-For": request.headers.get("X-Forwarded-For"),
+        "X-Real-IP": request.headers.get("X-Real-IP"),
+        "Client Host": request.client.host
+    }
 
 @api_router.get("/check")
 def check():

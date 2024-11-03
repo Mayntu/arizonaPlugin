@@ -18,7 +18,11 @@ class LogsMiddleware(BaseHTTPMiddleware):
         if request.url.path in SKIP_URLS:
             return await call_next(request)
         
-        client_ip : str = request.client.host
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            client_ip = forwarded_for.split(",")[0].strip()
+        else:
+            client_ip = request.headers.get("X-Real-IP", request.client.host)
         
         try:
             request_body = await request.json()
