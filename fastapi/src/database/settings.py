@@ -46,6 +46,7 @@ ARIZONA_SERVERS : list[dict[str, str]] = [
     {"name": "Christmas", "ip": "80.66.82.54:7777"},
     {"name": "Mirage", "ip": "80.66.82.39:7777"},
     {"name": "Love", "ip": "80.66.82.33:7777"},
+    {"name": "Drake", "ip": "80.66.82.22:7777"},
     {"name" : "Vice City", "ip" : "80.66.82.147:7777"}
 ]
 
