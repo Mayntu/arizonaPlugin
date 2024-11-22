@@ -258,4 +258,4 @@ async def handle_idea_response(message: Message, state : FSMContext):
 @main_router.callback_query(lambda c: c.data == "undo")
 async def undo_cb_handler(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
-    await callback_query.message.edit_text("Отменено")
+    await callback_query.message.edit_text("Действие отменено")
