@@ -16,7 +16,8 @@ from core.settings import (
     LICENSE_TEXT,
     BUY_TEXT,
     REPORT_COMMAND_TEXT,
-    IDEA_COMMAND_TEXT
+    IDEA_COMMAND_TEXT,
+    INST_TEXT
 )
 from core.pay_yoomoney import (
     get_ticket,
@@ -83,7 +84,7 @@ async def buy_handler(message: Message):
     
     await bot.send_message(
         chat_id=message.chat.id,
-        text="*Выберите время действия токена*",
+        text="*📅 Выберите срок подписки на скрипт*",
         reply_markup=create_duration_keyboard(),
         parse_mode="Markdown"
     )
@@ -142,6 +143,7 @@ async def callback_check_payment(callback_query : CallbackQuery):
         token : str = await get_token(buy_uuid=uuid, duration=duration)
         await bot.send_message(callback_query.from_user.id, f"Ваш токен {token}")
         await send_script_file(bot=bot, chat_id=callback_query.from_user.id)
+        await bot.send_message(callback_query.from_user.id, INST_TEXT)
 
         await bot.edit_message_reply_markup(chat_id=callback_query.from_user.id, message_id=callback_query.message.message_id, reply_markup=None)
         
