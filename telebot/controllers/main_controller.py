@@ -190,7 +190,7 @@ async def undo_command_handler(message: Message, state: FSMContext):
         await message.reply("Нет активных действий для отмены.")
     else:
         await state.clear()
-        await message.reply("Отменено")
+        await message.reply("Действие отменено")
 
 
 @main_router.message(ReportStates.waiting_for_report)
